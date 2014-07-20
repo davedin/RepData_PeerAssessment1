@@ -40,6 +40,7 @@ head(data)
 ### Load dependant libraries
 Libraries include
 * xtable
+* lubridate
 
 
 ```r
@@ -48,7 +49,7 @@ library(lubridate)
 ```
 
 
-## Globally Preprocess Data
+### Globally Preprocess Data
 Add weekday to data
 
 ```r
@@ -154,13 +155,14 @@ head(intervalSteps)
 
 
 ```r
-plot(intervalSteps$interval, intervalSteps$steps, type="l", col="orange")
+plot(intervalSteps$interval, intervalSteps$steps, type="l", col="orange", main = "Average number of steps taken")
 ```
 
 ![plot of chunk plot data](figure/plot data.png) 
 
 **Q2b) Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
-The Interval with the highest Value
+
+***Answer* - The Interval with the maximum number of steps**
 
 ```r
 intervalSteps[ intervalSteps$steps == max(intervalSteps$steps), ]
@@ -174,7 +176,7 @@ intervalSteps[ intervalSteps$steps == max(intervalSteps$steps), ]
 
 
 
-### Q3) What is the impact of imputing missing data on the estimates of the total daily number of steps?
+### Q3) What is the impact of inputing missing data on the estimates of the total daily number of steps?
 
 
 
