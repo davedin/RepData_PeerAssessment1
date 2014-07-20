@@ -1,20 +1,211 @@
-# Reproducible Research: Peer Assessment 1
+Reporducible Data - Assignment #1
+========================================================
+
+## Project setup
+
+### Load data
+Set your working directory
+```{r setwd, echo=TRUE}
+setwd('C:/www/r/reproc-week2')
+```
 
 
-## Loading and preprocessing the data
+Load the "quantified self" activity data 
+```{r load activity data}
+data <- read.table( "activity.csv"
+                    , sep = ","
+                    , header = TRUE
+                   )
+    
+
+```
+
+Make sure you got the data:
+
+```{r datacheck}
+head(data)
+```
+
+### Load dependant libraries
+Libraries include
+* xtable
+
+```{r load libraries}
+library(xtable)
+library(lubridate)
+```
+
+
+## Globally Preprocess Data
+Add weekday to data
+```{r add weekday}
+data$dayofweek = wday(data$date)
+```
+
+Make sure you got the day of week was added to the sata:
+
+```{r datacheck weekeday}
+head(data)
+```
+
+
+## Questions and Answers
+
+### Q1. What is mean total number of steps taken per day?
+**Process the data**
+Aggregate the of steps per day
+```{r}
+dailySteps <- aggregate(steps ~ date, data, FUN=sum)
+```
+
+**Explore the data**
+```{r q1 explore, fig.height=4}
+head(dailySteps)
+
+hist( dailySteps$steps, breaks = 10, col="yellow" )
+```
+
+***Answer* - Mean steps taken per day:**
+```{r q1 restult mean}
+mean(dailySteps$steps, na.rm=T)
+```
+
+***Answer* - Median steps taken per day:**
+```{r q1 restult median}
+median(dailySteps$steps, na.rm=T)
+```
 
 
 
-## What is mean total number of steps taken per day?
+### Q2. What is the average daily activity pattern?
+**Process the data**
+Aggregate the of steps per interval
+```{r}
+intervalSteps <- aggregate(steps ~ interval, data, FUN=mean)
+```
+
+**Explore the data**
+```{r q1 explore q2a, fig.height=4}
+head(intervalSteps)
+```
+**Q2aMake a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days**
+
+```{r plot data, fig.height=4}
+plot(intervalSteps$interval, intervalSteps$steps, type="l", col="orange")
+```
+
+**Q2b) Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
+The Interval with the highest Value
+```{r}
+intervalSteps[ intervalSteps$steps == max(intervalSteps$steps), ]
+```
 
 
 
-## What is the average daily activity pattern?
+
+### Q3) What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 
 
-## Imputing missing values
+**Add missing data**  
+Create a function to get the average steps per interval
+```{r input missing function}
+getIntervalAverageSteps <- function(interval) {
+
+        avgSteps = intervalSteps$steps[ intervalSteps$interval == interval]
+        avgSteps
+
+}
+```
 
 
+**Input missing data**  
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r input missing data}
+dataFilled <- data
+dataFilled$steps[ is.na(dataFilled$steps) ] <- getIntervalAverageSteps( dataFilled$interval )
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+**Determine "Filled" total number of steps taken each day**
+```{r}
+dailyStepsFilled <- aggregate(steps ~ date, dataFilled, FUN=sum)
+```
+
+
+**Make a histogram of the total number of steps taken each day**
+```{r q3 filled hist, fig.height=4}
+hist( dailySteps$steps, breaks = 10, col="red" )
+```
+
+***Answer* - Mean steps taken per day:**
+```{r q3 restult filled mean}
+meanFilled <- mean(dailyStepsFilled$steps, na.rm=T)
+```
+
+```{r q3 restult filled mean out, echo=FALSE}
+meanFilled
+```
+
+***Answer* - Median steps taken per day:**
+```{r q1 restult filled median}
+median(dailyStepsFilled$steps, na.rm=T)
+```
+
+**Food for tought:**  
+Why does the *summary* function come out with differnet number
+```{r q1 filled summary}
+summary(dailyStepsFilled$steps, na.rm=T)
+summary(dailyStepsFilled$steps, na.rm=F)
+```
+
+***Answer* - What is the impact of imputing missing data on the estimates of the total daily number of steps?**  
+There was not a significant impact to adding the data.  The unfilled mean was `r meanFilled` the filled mean was `r meanFilled`.  The unfilled median was `r meanFilled` and the filled median was `r meanFilled`.
+
+
+### Q4) Are there differences in activity patterns between weekdays and weekends?
+**Create a new factor variable in the dataset with two levels -- "weekday" and "weekend"**  
+
+Create a weekend dataset
+```{r weekend dataset}
+dataWeekend <- subset( dataFilled, dataFilled$dayofweek == 1 | dataFilled$dayofweek == 7 )
+```
+checkout our weekend data
+```{r weekend check}
+head(dataWeekend)
+head( unique( wday(dataWeekend$dayofweek, label = T) ) )
+```
+
+Find the weekend average
+```{r weekend average}
+weekendIntervalSteps <- aggregate(steps ~ interval, dataWeekend, FUN=mean)
+```
+
+Create a weekday dataset
+```{r weekday dataset}
+dataWeekday <- subset( dataFilled, dataFilled$dayofweek != 1 & dataFilled$dayofweek != 7 )
+```
+
+checkout our weekday data
+```{r weekday check}
+head(dataWeekday)
+head( unique( wday(dataWeekday$dayofweek, label = T) ) )
+```
+
+Find the weekday average
+```{r weekday average}
+weekdayIntervalSteps <- aggregate(steps ~ interval, dataWeekday, FUN=mean)
+```
+
+```{r plot compare plots}
+par(mfrow = c(2, 1))
+plot(weekendIntervalSteps$interval, 
+     weekendIntervalSteps$steps, 
+     type="l", 
+     col="green",
+     main="Weekend Steps")
+plot(weekdayIntervalSteps$interval, 
+     weekdayIntervalSteps$steps, 
+     type="l", 
+     col="blue",
+     main="Weekeday Steps")
+```
